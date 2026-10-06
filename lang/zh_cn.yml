@@ -1,0 +1,23 @@
+backup_7z:
+  hover:
+    make: '点击创建备份'
+    list: '点击展示近10个备份'
+    listall: '点击展示所有备份'
+
+  help: '创建永久备份'
+  start: '§3[Backup 7z]§r §e开始备份§r'
+  running: '§3[Backup 7z]§r §c正在备份中...§r'
+  archive: '§3[Backup 7z]§r §e备份完成, 压缩中...§r'
+  archiva_failed: '§3[Backup 7z]§r §c压缩包创建失败:(§r'
+  exit: '§c备份任务终止§r'
+  done: '成功将存档归档至§e{name}§r'
+  time_size: '文件大小: §a{size}GB§r, 耗时: §a{s}s§r'
+  show: '§3[Backup 7z]§r 共有§6{count}§r个备份'
+  root: |
+    §3§l====== [Backup 7z] ======§r§r
+    §l一个可以创建7z格式永久备份的插件§r
+    §a§l[格式说明]§r§r
+    §7{prefix}§r 显示帮助信息
+    {prefix_make} 创建一个备份. §7[<comment>]§r为可选注释信息
+    {prefix_list} 显示最近的十个备份的信息
+    {prefix_listall} 显示全部备份的信息

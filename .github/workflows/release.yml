@@ -1,0 +1,27 @@
+name: release
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: checkout repository
+        uses: actions/checkout@v7
+      - name: setup python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.14'
+      - name: pip requirements
+        run: pip install -r requirements.txt
+      - name: pack
+        run: python -m mcdreforged pack
+      - name: publish
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          files: '*.mcdr'

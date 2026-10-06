@@ -1,0 +1,21 @@
+{
+    "schema_version": 1,
+    "id": "backup_7z",
+    "version": "1.0.0",
+    "name": "Backup 7z",
+    "description": "This description is a description to your plugin",
+    "authors": [
+        {
+            "name": "Crystal0404"
+        }
+    ],
+    "links": {
+        "homepage": "https://github.com/MCDReforged/PluginTemplate"
+    },
+    "dependencies": {
+        "mcdreforged": ">=2.16.0"
+    },
+    "resources": [
+        "lang"
+    ]
+}
