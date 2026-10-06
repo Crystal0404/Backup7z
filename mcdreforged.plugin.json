@@ -3,15 +3,22 @@
     "id": "backup_7z",
     "version": "1.0.0",
     "name": "Backup 7z",
-    "description": "This description is a description to your plugin",
+    "description": {
+        "zh_cn": "一个用于创建7z格式永久备份的插件",
+        "en_us": "A plugin for creating permanent backups in 7z format"
+    },
     "authors": [
         {
-            "name": "Crystal0404"
+            "name": "Crystal0404",
+            "homepage": "https://github.com/Crystal0404"
         }
     ],
     "links": {
-        "homepage": "https://github.com/MCDReforged/PluginTemplate"
+        "homepage": "https://github.com/Crystal0404/Backup7z",
+        "source": "https://github.com/Crystal0404/Backup7z",
+        "issue": "https://github.com/Crystal0404/Backup7z/issues"
     },
+    "license": "GPL-3.0-only",
     "dependencies": {
         "mcdreforged": ">=2.16.0"
     },
