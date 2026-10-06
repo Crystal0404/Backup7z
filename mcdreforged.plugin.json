@@ -1,7 +1,7 @@
 {
     "schema_version": 1,
     "id": "backup_7z",
-    "version": "1.0.0",
+    "version": "0.1.0-beta.1",
     "name": "Backup 7z",
     "description": {
         "zh_cn": "一个用于创建7z格式永久备份的插件",
@@ -23,6 +23,7 @@
         "mcdreforged": ">=2.16.0"
     },
     "resources": [
-        "lang"
+        "lang",
+        "LICENSE"
     ]
 }
