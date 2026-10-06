@@ -83,6 +83,9 @@ def rtr(key: str, *args, **kwargs):
 
 def get_list() -> list[str]:
     backup_path = Path(config().backup_path)
+    if not backup_path.is_dir():
+        return list()
+
     names = [i.name for i in backup_path.iterdir() if i.is_file() and re.match(DATE_PATTERN, i.name)]
     sort_names = sorted(names, key=parser_time, reverse=True)
     return sort_names
