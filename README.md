@@ -31,7 +31,7 @@
         ]
     },
     "archive": {
-        "mode": "7z",  // 备份模式. 可选7z, 7z-commandline, zip
+        "mode": "zip",  // 备份模式. 可选zip, 7z-commandline, zip-commandline
         "core_7z": "" // 7z-commandline模式下7-zip核心路径
     }
 }
@@ -47,18 +47,14 @@
 
 最经典的压缩算法, 压缩速度快, 兼容性强, 但文件体积往往比7z大
 
-### `7z`
+此模式使用python标准库进行压缩, 开箱即用, 不需要额外配置
 
-压缩率极高, 可以将存档压缩为极小的体积. 但压缩速度慢于 `zip` 模式
+### `7z-commandline` `zip-commandline`
 
-此模式下通过`py7zr`库对文件进行压缩
+希望获得更高的压缩性能? 此模式下可以通过命令行调用`7-zip`进行压缩, 以达到最佳压缩性能
 
-### `7z-commandline`
-
-希望获得更高的7z压缩性能? 此模式下可以通过命令行调用`7-zip`进行压缩, 以达到最佳压缩性能
+`7z-commandline`将文件打包为7z格式, `zip-commandline`将文件打包为zip格式
 
 你需要指定`core_7z`为7-zip可执行文件, 通常为`7z.exe`的文件路径
 
-你可以在这里下载到官方7-zip [https://7-zip.org/download.html](https://7-zip.org/download.html)
-
-
+你可以在这里下载到官方7-zip [https://7-zip.org](https://7-zip.org)
