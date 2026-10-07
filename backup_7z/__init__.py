@@ -16,12 +16,13 @@ from backup_7z.utils import *
 CONFIG: Config
 EVENT: Event = Event()
 LOCK: Lock = Lock()
-LOAD: bool = True
+LOAD: bool = False
 
 
 def on_load(server: PluginServerInterface, _):
-    global CONFIG
+    global CONFIG, LOAD
     CONFIG = server.load_config_simple(target_class=Config)
+    LOAD = True
     register_command(server)
 
 
@@ -32,7 +33,7 @@ def on_unload(_: PluginServerInterface):
 
 
 def on_info(_: PluginServerInterface, info: Info):
-    if info.is_user or EVENT.is_set():
+    if not LOAD or info.is_user or EVENT.is_set():
         return
 
     if any(re.fullmatch(i, info.content) for i in CONFIG.server.saved_world_regex):
@@ -161,9 +162,7 @@ def archive_world(target_path: Path, backup_path: Path, archive_mode: str, archi
     if archive_path.resolve().parent != backup_path.resolve():
         raise ValueError
     match archive_mode:
-        case "7z":
-            archive_7z(target_path, archive_path)
-        case "7z-commandline":
-            archive_commandline_7z(target_path, archive_path)
+        case "7z-commandline" | "zip-commandline":
+            archive_commandline(target_path, archive_path)
         case "zip":
             archive_zip(target_path, archive_path)

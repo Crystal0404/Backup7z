@@ -19,12 +19,12 @@ class Config(BaseModel):
         )
 
     class __Archive(BaseModel):
-        mode: Literal["7z", "7z-commandline", "zip"] = "7z"
+        mode: Literal["7z-commandline", "zip", "zip-commandline"] = "zip"
         core_7z: str = ""
 
         @model_validator(mode="after")
         def check_core(self) -> Self:
-            if self.mode == "7z-commandline" and not Path(self.core_7z).is_file():
+            if self.mode != "zip" and not Path(self.core_7z).is_file():
                 raise ValueError("Can not found core_7z path")
             return self
 

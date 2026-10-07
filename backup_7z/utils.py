@@ -5,15 +5,13 @@ from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 
 from mcdreforged import PluginServerInterface, RTextBase, CommandSource
-from py7zr import SevenZipFile
 
 from backup_7z.config import Config
 
 __all__ = [
     "SUFFIX",
     "get_server_path",
-    "archive_commandline_7z",
-    "archive_7z",
+    "archive_commandline",
     "archive_zip",
     "save_on",
     "save_off",
@@ -23,9 +21,9 @@ __all__ = [
     "show"
 ]
 SUFFIX = {
-    "7z": ".7z",
     "7z-commandline": ".7z",
-    "zip": ".zip"
+    "zip": ".zip",
+    "zip-commandline": ".zip"
 }
 DATE_PATTERN = re.compile(r".*?(?P<date>\d{4,}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).*")
 
@@ -35,7 +33,7 @@ def get_server_path() -> Path:
     return Path(mcdr_config["working_directory"])
 
 
-def archive_commandline_7z(target: Path, to: Path):
+def archive_commandline(target: Path, to: Path):
     args = [
         config().archive.core_7z,
         "a",
@@ -45,13 +43,6 @@ def archive_commandline_7z(target: Path, to: Path):
     result = subprocess.run(args, stdout=subprocess.DEVNULL)
     if result.returncode != 0:
         raise RuntimeError(f"failed archive, return code: {result.returncode}")
-
-
-def archive_7z(target: Path, to: Path):
-    with SevenZipFile(to, "w") as szf:
-        paths = [i for i in target.rglob("*")]
-        for path in paths:
-            szf.write(path, arcname=str(path.relative_to(target)))
 
 
 def archive_zip(target: Path, to: Path):
