@@ -86,6 +86,7 @@ def register_command(server: PluginServerInterface):
 
 
 def request_backup(_: CommandSource, context: CommandContext):
+    # Only 1 thread is allowed
     if LOCK.acquire(blocking=False):
         comment = context.get("comment", None)
         Thread(target=backup_thread_entry, args=(comment,), name="backup_7z").start()
@@ -115,16 +116,20 @@ def backup_worlds(comment: str | None):
                 save_off()
             save_all()
             EVENT.wait(timeout=CONFIG.server.timeout)
+            # Timeout or plugin unloaded: abort this backup
             if not (EVENT.is_set() and LOAD):
                 si().broadcast(rtr("backup_7z.exit"))
                 return
+
             copy_worlds(target_path)
         finally:
+            # Restore auto-save regardless of success/failure
             save_on()
 
         si().broadcast(rtr("backup_7z.archive"))
         archive_mode = CONFIG.archive.mode
         archive_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        # eg: 2026-10-01_20-00-00_hello.7z
         archive_name = (
                 CONFIG.archive_format.format(time=archive_time)
                 + ("" if comment is None else f"_{comment}")
@@ -154,6 +159,7 @@ def copy_worlds(target_path: Path):
 
 def archive_worlds(target_path: Path, backup_path: Path, archive_mode: str, archive_name: str):
     archive_path = backup_path.joinpath(archive_name)
+    # Safety check: prevent archive_name containing ../ from writing outside backup_path
     if archive_path.resolve().parent != backup_path.resolve():
         raise ValueError
     match archive_mode:

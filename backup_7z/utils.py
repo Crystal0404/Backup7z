@@ -34,6 +34,13 @@ def get_server_path() -> Path:
 
 
 def archive_commandline(target: Path, to: Path):
+    """
+    7-zip commandline mode
+
+    You can find it here https://7-zip.org
+
+    see file ``7-zip.chm`` get more
+    """
     args = [
         config().archive.core_7z,
         "a",
