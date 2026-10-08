@@ -4,7 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from mcdreforged import PluginServerInterface, RTextBase, CommandSource
+from mcdreforged import PluginServerInterface, RText, CommandSource
 
 from backup_7z.config import Config
 
@@ -18,7 +18,7 @@ __all__ = [
     "save_all",
     "si",
     "rtr",
-    "show"
+    "list_backups"
 ]
 SUFFIX = {
     "7z-commandline": ".7z",
@@ -47,8 +47,7 @@ def archive_commandline(target: Path, to: Path):
 
 def archive_zip(target: Path, to: Path):
     with ZipFile(to, "w", ZIP_DEFLATED) as zipf:
-        paths = [i for i in target.rglob("*")]
-        for path in paths:
+        for path in target.rglob("*"):
             zipf.write(path, arcname=path.relative_to(target))
 
 
@@ -93,7 +92,7 @@ def config() -> Config:
     return CONFIG
 
 
-def show(source: CommandSource, max_count: bool = True, count: int = 10):
+def list_backups(source: CommandSource, max_count: bool = True, count: int = 10):
     backup_list = get_list()
     source.reply(si().rtr("backup_7z.show", count=len(backup_list)))
     backup_path = Path(config().backup_path)
@@ -102,7 +101,7 @@ def show(source: CommandSource, max_count: bool = True, count: int = 10):
         num += 1
         path = backup_path.joinpath(backup)
         size = path.stat().st_size
-        text = RTextBase.format(rf"§7{num}. §r§e{backup}§r {size / (1024 ** 3):.2f} GB")
+        text = RText(rf"§7{num}. §r§e{backup}§r {size / (1024 ** 3):.2f} GB")
         source.reply(text)
         if max_count and num >= count:
             break

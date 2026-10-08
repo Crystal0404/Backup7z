@@ -2,7 +2,6 @@ import re
 import shutil
 import time
 from datetime import datetime
-from functools import wraps
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from threading import Lock, Thread, Event
@@ -76,40 +75,34 @@ def register_command(server: PluginServerInterface):
         ).
         then(
             Literal("make").
-            runs(make).
-            then(QuotableText("comment").runs(make))
+            runs(request_backup).
+            then(QuotableText("comment").runs(request_backup))
         ).
-        then(Literal("list").runs(lambda s: show(s))).
-        then(Literal("listall").runs(lambda s: show(s, False)))
+        then(Literal("list").runs(lambda s: list_backups(s))).
+        then(Literal("listall").runs(lambda s: list_backups(s, False)))
     )
     server.register_command(command)
     server.register_help_message(prefix, rtr("backup_7z.help"))
 
 
-def wrap_lock(func):
-    @wraps(func)
-    def wrap(*args, **kwargs):
-        if not LOCK.locked():
-            raise RuntimeError("Lock must acquire!")
-        try:
-            result = func(*args, **kwargs)
-        finally:
-            LOCK.release()
-        return result
-
-    return wrap
-
-
-def make(_: CommandSource, context: CommandContext):
+def request_backup(_: CommandSource, context: CommandContext):
     if LOCK.acquire(blocking=False):
         comment = context.get("comment", None)
-        Thread(target=make_in_thread, args=(comment,), name="backup_7z").start()
+        Thread(target=backup_thread_entry, args=(comment,), name="backup_7z").start()
     else:
         si().broadcast(rtr("backup_7z.running"))
 
 
-@wrap_lock
-def make_in_thread(comment: str | None):
+def backup_thread_entry(comment: str | None):
+    if not LOCK.locked():
+        raise RuntimeError("Lock must acquire!")
+    try:
+        backup_worlds(comment)
+    finally:
+        LOCK.release()
+
+
+def backup_worlds(comment: str | None):
     start = time.time()
     si().broadcast(rtr("backup_7z.start"))
     EVENT.clear()
@@ -125,9 +118,10 @@ def make_in_thread(comment: str | None):
             if not (EVENT.is_set() and LOAD):
                 si().broadcast(rtr("backup_7z.exit"))
                 return
-            copy_world(target_path)
+            copy_worlds(target_path)
         finally:
             save_on()
+
         si().broadcast(rtr("backup_7z.archive"))
         archive_mode = CONFIG.archive.mode
         archive_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -137,27 +131,28 @@ def make_in_thread(comment: str | None):
                 + SUFFIX[archive_mode]
         )
         try:
-            archive_world(target_path, backup_path, archive_mode, archive_name)
+            archive_worlds(target_path, backup_path, archive_mode, archive_name)
         except Exception:
             si().broadcast(rtr("backup_7z.archiva_failed"))
             raise
     end = time.time()
     si().broadcast(rtr("backup_7z.done", name=archive_name))
     archive_path = backup_path.joinpath(archive_name)
-    if archive_path.exists() and archive_path.is_file():
+    if archive_path.is_file():
         size = archive_path.stat().st_size
         si().broadcast(rtr("backup_7z.time_size", size=f"{size / (1024 ** 3):.2f}", s=f"{end - start:.2f}"))
 
 
-def copy_world(target_path: Path):
+def copy_worlds(target_path: Path):
     for world_name in CONFIG.world_names:
         from_path = Path(get_server_path()).joinpath(world_name)
         to_path = target_path.joinpath(world_name)
         if from_path.exists():
+            si().logger.info(f"copying {from_path.resolve()} -> {to_path}")
             shutil.copytree(from_path, to_path, ignore=shutil.ignore_patterns(*CONFIG.ignore_file_patterns))
 
 
-def archive_world(target_path: Path, backup_path: Path, archive_mode: str, archive_name: str):
+def archive_worlds(target_path: Path, backup_path: Path, archive_mode: str, archive_name: str):
     archive_path = backup_path.joinpath(archive_name)
     if archive_path.resolve().parent != backup_path.resolve():
         raise ValueError
