@@ -10,6 +10,7 @@ from backup_7z.config import Config
 
 __all__ = [
     "SUFFIX",
+    "COMMENT_FILTER",
     "get_server_path",
     "archive_commandline",
     "archive_zip",
@@ -26,6 +27,7 @@ SUFFIX = {
     "zip-commandline": ".zip"
 }
 DATE_PATTERN = re.compile(r".*?(?P<date>\d{4,}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}).*")
+COMMENT_FILTER = re.compile(r"[/\\:*?\"|<>]")
 
 
 def get_server_path() -> Path:

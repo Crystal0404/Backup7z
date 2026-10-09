@@ -75,8 +75,8 @@ def register_command(server: PluginServerInterface):
         ).
         then(
             Literal("make").
-            runs(request_backup).
-            then(QuotableText("comment").runs(request_backup))
+            runs(create_backup).
+            then(QuotableText("comment").runs(create_backup))
         ).
         then(Literal("list").runs(lambda s: list_backups(s))).
         then(Literal("listall").runs(lambda s: list_backups(s, False)))
@@ -85,16 +85,16 @@ def register_command(server: PluginServerInterface):
     server.register_help_message(prefix, rtr("backup_7z.help"))
 
 
-def request_backup(_: CommandSource, context: CommandContext):
+def create_backup(_: CommandSource, context: CommandContext):
     # Only 1 thread is allowed
     if LOCK.acquire(blocking=False):
-        comment = context.get("comment", None)
+        comment = COMMENT_FILTER.sub("", context.get("comment", ""))
         Thread(target=backup_thread_entry, args=(comment,), name="backup_7z").start()
     else:
         si().broadcast(rtr("backup_7z.running"))
 
 
-def backup_thread_entry(comment: str | None):
+def backup_thread_entry(comment: str):
     if not LOCK.locked():
         raise RuntimeError("Lock must acquire!")
     try:
@@ -103,17 +103,19 @@ def backup_thread_entry(comment: str | None):
         LOCK.release()
 
 
-def backup_worlds(comment: str | None):
+def backup_worlds(comment: str):
     start = time.time()
     si().broadcast(rtr("backup_7z.start"))
     EVENT.clear()
     backup_path = Path(CONFIG.backup_path)
     backup_path.mkdir(exist_ok=True, parents=True)
+    auto_save = True
     with TemporaryDirectory(dir=backup_path) as temp:
         target_path = Path(temp)
         try:
             if CONFIG.server.turn_off_auto_save:
                 save_off()
+                auto_save = False
             save_all()
             EVENT.wait(timeout=CONFIG.server.timeout)
             # Timeout or plugin unloaded: abort this backup
@@ -124,7 +126,8 @@ def backup_worlds(comment: str | None):
             copy_worlds(target_path)
         finally:
             # Restore auto-save regardless of success/failure
-            save_on()
+            if not auto_save:
+                save_on()
 
         si().broadcast(rtr("backup_7z.archive"))
         archive_mode = CONFIG.archive.mode
@@ -132,7 +135,7 @@ def backup_worlds(comment: str | None):
         # eg: 2026-10-01_20-00-00_hello.7z
         archive_name = (
                 CONFIG.archive_format.format(time=archive_time)
-                + ("" if comment is None else f"_{comment}")
+                + ("" if comment == "" else f"_{comment}")
                 + SUFFIX[archive_mode]
         )
         try:
