@@ -45,7 +45,7 @@ def archive_commandline(target: Path, to: Path):
         config().archive.core_7z,
         "a",
         to,
-        rf"{target}\*"
+        rf"{target}/*"
     ]
     result = subprocess.run(args, stdout=subprocess.DEVNULL)
     if result.returncode != 0:
